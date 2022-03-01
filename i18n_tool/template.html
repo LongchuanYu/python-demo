@@ -1,0 +1,88 @@
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <title>xxx</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <style>
+    .el-table .warning-row {
+      background: oldlace;
+    }
+    .el-table .error-row {
+      background: #fde6e6;
+    }
+    .el-table .cursor {
+      cursor: default;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <el-table :data="tableData" height="100%" style="width: 100%" :row-class-name="tableRowClassName"
+      @cell-dblclick="cellClick">
+      <el-table-column type="expand"
+        :filters="[{text: 'refer空', value: 'refer'},{text: 'en/cn空', value: 'en_cn'}]"
+        :filter-method="filterHandler">
+        <template slot-scope="props">
+          <el-form inline class="demo-table-expand">
+            <a v-for="refer in props.row.refer" href="javascript:void(0)"
+              @click="clickUrl(refer.filePath, refer.number)" style="display: block;">
+              {{refer.filePath}}:{{refer.number}}
+            </a>
+          </el-form>
+        </template>
+      </el-table-column>
+      <el-table-column prop="name" label="key" width="180">
+      </el-table-column>
+      <el-table-column prop="cn" label="cn" class-name="cursor">
+      </el-table-column>
+      <el-table-column prop="en" label="en" class-name="cursor">
+      </el-table-column>
+    </el-table>
+  </div>
+  <script>
+    var tableData = {% tableData %}
+    var app = new Vue({
+      el: '#app',
+      data: {
+        msg: 'hello',
+        tableData: tableData
+      },
+      methods: {
+        filterHandler(value, row, column) {
+          if (value === 'refer') {
+            return !row['refer'].length
+          } else {
+            return row['en'] === '' || row['cn'] === '';
+          }
+        },
+        clickUrl(path, number) {
+          window.location.href = `vscode://file/${path}:${number || 1}`
+        },
+        tableRowClassName({ row, rowIndex }) {
+          if (!row.refer.length) {
+            return 'warning-row'
+          }
+          if (!row.en || !row.cn) {
+            return 'error-row'
+          }
+        },
+        cellClick(row, column, cell, event) {
+          if (column.label !== 'en' && column.label !== 'cn') {
+            return;
+          }
+          let href = `vscode://file/${row.cnPathWithLine}`
+          if (column.label === 'en') {
+            href = `vscode://file/${row.enPathWithLine}`
+          }
+          window.location.href = href
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
